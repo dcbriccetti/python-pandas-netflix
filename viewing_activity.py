@@ -23,10 +23,16 @@ def create_dataframe():
         .fillna('') \
         .rename(columns={svt: 'Type'})
     df['Duration'] = pd.to_timedelta(df['Duration'])
+    df['Date'] = df['Start Time'].astype(str).str.split(' ', expand=True).get(0)
     return df.sort_values(by='Start Time')
 
 config_display()
 df = create_dataframe()
 mdf = get_title_matches('Seinfeld', df)
+print(Fore.GREEN + '\nWatch time by type' + Fore.WHITE)
+print(mdf.groupby('Type')[['Duration']].sum())
+print(Fore.GREEN + '\nWatch time by date' + Fore.WHITE)
+print(mdf.groupby('Date')[['Duration']].sum())
+print(Fore.GREEN + '\nSessions' + Fore.WHITE)
 print(mdf, '\n')
 print(Fore.LIGHTYELLOW_EX + 'Total watch time:', mdf['Duration'].sum())
