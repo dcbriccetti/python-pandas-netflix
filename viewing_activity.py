@@ -16,14 +16,16 @@ def get_title_matches(title_part: str, df: DataFrame) -> DataFrame:
     return df[df.index.str.contains(title_part)]
 
 def create_dataframe():
-    svt = 'Supplemental Video Type'
+    rename_col = ('Supplemental Video Type', 'Type')
     df: DataFrame = pd.read_csv(
-        REPORT_DIR + 'CONTENT_INTERACTION/ViewingActivity.csv', index_col='Title',
-        usecols=['Title', 'Start Time', 'Duration', svt], parse_dates=['Start Time']) \
+        REPORT_DIR + 'CONTENT_INTERACTION/ViewingActivity.csv',
+        index_col='Title',
+        usecols=['Title', 'Start Time', 'Duration', rename_col[0]],
+        parse_dates=['Start Time']) \
         .fillna('') \
-        .rename(columns={svt: 'Type'})
+        .rename(columns=dict([rename_col]))
     df['Duration'] = pd.to_timedelta(df['Duration'])
-    df['Date'] = df['Start Time'].astype(str).str.split(' ', expand=True).get(0)
+    df['Month'] = df['Start Time'].astype(str).str[:7]
     return df.sort_values(by='Start Time')
 
 config_display()
@@ -31,8 +33,10 @@ df = create_dataframe()
 mdf = get_title_matches('Seinfeld', df)
 print(Fore.GREEN + '\nWatch time by type' + Fore.WHITE)
 print(mdf.groupby('Type')[['Duration']].sum())
-print(Fore.GREEN + '\nWatch time by date' + Fore.WHITE)
-print(mdf.groupby('Date')[['Duration']].sum())
+print(Fore.GREEN + '\nWatch time by month' + Fore.WHITE)
+print(mdf.groupby('Month')[['Duration']].sum())
+print(Fore.GREEN + '\nWatches by month' + Fore.WHITE)
+print(mdf.groupby('Month')[['Duration']].count())
 print(Fore.GREEN + '\nSessions' + Fore.WHITE)
 print(mdf, '\n')
 print(Fore.LIGHTYELLOW_EX + 'Total watch time:', mdf['Duration'].sum())
